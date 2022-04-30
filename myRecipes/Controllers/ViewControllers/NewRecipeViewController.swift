@@ -41,14 +41,20 @@ class NewRecipeViewController: UIViewController {
             recipe.recipeImage = recipeImage
             
             RecipeController.shared.updateRecipe(recipe) { success in
-                if success {
-                    self.navigationController?.popViewController(animated: true)
+                DispatchQueue.main.async {
+                    self.navigationController?.popToRootViewController(animated: true)
                 }
+                    
             }
         } else {
+            
+            if recipeImage == nil {
+                recipeImage = UIImage(named: "cat")
+            }
+            
             RecipeController.shared.saveRecipe(with: recipeName, ingredients: ingredientsArray, directions: directionsArray, image: recipeImage) { success in
-                if success {
-                    self.navigationController?.popViewController(animated: true)
+                DispatchQueue.main.async {
+                    self.navigationController?.popToRootViewController(animated: true)
                 }
             }
         }
@@ -61,17 +67,21 @@ class NewRecipeViewController: UIViewController {
             directionsTextField.text = recipe.directions.convertToEditFormat()
             createRecipeButton.setTitle("Update Recipe", for: .normal)
             recipeImage = recipe.recipeImage
+            print(photoContainerView.subviews)
         } else {
             createRecipeButton.setTitle("Create Recipe", for: .normal)
         }
         
-        photoContainerView.layer.cornerRadius = photoContainerView.frame.height / 5
-        photoContainerView.clipsToBounds = true
+//        photoContainerView.layer.cornerRadius = photoContainerView.frame.height / 5
+//        photoContainerView.clipsToBounds = true
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "photoPickerVC" {
             let destinationVC = segue.destination as? PhotoPickerViewController
+            if let recipe = recipe {
+                destinationVC?.recipe = recipe
+            }
             destinationVC?.delegate = self
         }
     }
@@ -82,5 +92,6 @@ extension NewRecipeViewController: PhotoPickerDelegate {
     func photoPickerSelected(image: UIImage) {
         self.recipeImage = image
     }
-    
 }
+
+

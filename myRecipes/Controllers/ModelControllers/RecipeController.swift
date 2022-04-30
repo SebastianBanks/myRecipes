@@ -82,6 +82,7 @@ class RecipeController {
             print("Update \(record.recordID.recordName) successfully in CloudKit")
             completion(true)
         }
+        privateDB.add(operation)
     }
     
     func deleteRecipe(_ recipe: Recipe, completion: @escaping (Bool) -> Void) {

@@ -7,13 +7,14 @@
 
 import UIKit
 
-protocol PhotoPickerDelegate: class {
+protocol PhotoPickerDelegate: AnyObject {
     func photoPickerSelected(image: UIImage)
 }
 
 class PhotoPickerViewController: UIViewController {
     
     let imagePicker = UIImagePickerController()
+    var recipe: Recipe?
     weak var delegate: PhotoPickerDelegate?
     
     @IBOutlet weak var photoImageView: UIImageView!
@@ -22,7 +23,18 @@ class PhotoPickerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupViews()
+    }
+    
+    func setupViews() {
+        photoImageView.contentMode = .scaleToFill
+        photoImageView.clipsToBounds = true
+        photoImageView.backgroundColor = .lightGray
+        imagePicker.delegate = self
         
+        if let recipe = recipe {
+            photoImageView.image = recipe.recipeImage
+        }
     }
     
     @IBAction func selectPhotoButtonTapped(_ sender: Any) {
@@ -42,15 +54,7 @@ class PhotoPickerViewController: UIViewController {
         alert.addAction(cameraAction)
         alert.addAction(photoLibraryAction)
         
-        present(alert, animated: true, completion: nil)
-    }
-    
-    
-    func setupViews() {
-        photoImageView.contentMode = .scaleAspectFit
-        photoImageView.clipsToBounds = true
-        photoImageView.backgroundColor = .lightGray
-        imagePicker.delegate = self
+        present(alert, animated: true)
     }
     
 

@@ -8,11 +8,40 @@
 import UIKit
 
 class RecipeListTableViewController: UITableViewController {
+    
+    var refresh: UIRefreshControl = UIRefreshControl()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        setupViews()
+        loadData()
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateViews()
+    }
+    
+    @objc func loadData() {
+        RecipeController.shared.fetchRecipes { success in
+            if success {
+                self.updateViews()
+            }
+        }
+    }
+    
+    func setupViews() {
+        refresh.attributedTitle = NSAttributedString(string: "Pull to refresh recipes")
+        refresh.addTarget(self, action: #selector(loadData), for: .valueChanged)
+        tableView.addSubview(refresh)
+    }
+    
+    func updateViews() {
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+            self.refresh.endRefreshing()
+        }
     }
 
     // MARK: - Table view data source
@@ -23,7 +52,7 @@ class RecipeListTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "myRecipeCell", for: indexPath) as? myRecipeTableViewCell else { return UITableViewCell() }
-
+        print("make recipe cell")
         // Configure the cell...
         let recipe = RecipeController.shared.recipes[indexPath.row]
         cell.recipe = recipe
