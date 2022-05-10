@@ -49,14 +49,27 @@ class RecipeViewController: UIViewController {
         
 
         RecipeController.shared.saveRecipe(with: recipe.title, ingredients: ingredients, directions: directions, image: recipeImageFetched) { success in
-            switch success {
-            case true:
-                print("saved successfully")
-                print(RecipeController.shared.recipes)
-            case false:
-                print("error saving recipe")
+            DispatchQueue.main.async {
+                switch success {
+                case true:
+                    print("saved successfully")
+                    self.presentAlert(title: "Success", message: "The recipe was saved successfully. You'll find it in your saved recipes tab")
+                case false:
+                    print("error saving recipe")
+                    self.presentAlert(title: "Something went wrong", message: "Something went wrong with saving this recipe. Make sure you're signed into your ICloud account and try again.")
+                }
             }
         }
+    }
+    
+    func presentAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        let okAction = UIAlertAction(title: "Back to recipe", style: .cancel)
+        
+        alert.addAction(okAction)
+        
+        self.present(alert, animated: true)
     }
     
     
@@ -141,37 +154,45 @@ class RecipeViewController: UIViewController {
     }
     
     func updateView() {
-        let width = view.frame.size.width - 40
         
-        scrollView.frame = CGRect(x: 10, y: 10, width: view.frame.size.width, height: view.frame.size.height - 20)
-        
-        var ingredientText = ""
-        var dirctionsText = ""
-        
-        for ingredient in ingredients {
-            ingredientText += "\(ingredient)\n"
+        DispatchQueue.main.async {
+            let width = self.view.frame.size.width - 40
+            
+            self.scrollView.frame = CGRect(x: 10, y: 10, width: self.view.frame.size.width, height: self.view.frame.size.height - 20)
+            
+            var ingredientText = ""
+            var dirctionsText = ""
+            
+            for ingredient in self.ingredients {
+                ingredientText += "\(ingredient)\n"
+            }
+            
+            for direction in self.directions {
+                dirctionsText += "\(direction)\n\n"
+            }
+            
+            self.ingredientTextLabel.text = ingredientText
+            self.directionsTextLabel.text = dirctionsText
+            
+            let ingredientHeight = self.heightForLabel(text: ingredientText, width: width)
+            let directionHeight = self.heightForLabel(text: dirctionsText, width: width)
+            
+            let ingredientTitleY = self.recipeImage.frame.height + 60
+            let ingredientY = ingredientTitleY + self.ingredientTitleLabel.frame.height + 20
+            
+            self.ingredientTextLabel.frame = CGRect(x: 10, y: ingredientY, width: width, height: ingredientHeight)
+            
+            let directionsTitleY = ingredientY + self.ingredientTextLabel.frame.height
+            self.directionsTitleLabel.frame = CGRect(x: 10, y: directionsTitleY, width: width, height: 24)
+            
+            let directionsY = directionsTitleY + self.directionsTitleLabel.frame.height + 20
+            self.directionsTextLabel.frame = CGRect(x: 10, y: directionsY, width: width, height: directionHeight)
+            
+            let scrollViewContentHeight = directionsY + self.directionsTextLabel.frame.height + 20
+            
+            self.scrollView.contentSize = CGSize(width: self.view.frame.size.width, height: scrollViewContentHeight)
         }
         
-        for direction in directions {
-            dirctionsText += "\(direction)\n\n"
-        }
-        
-        ingredientTextLabel.text = ingredientText
-        directionsTextLabel.text = dirctionsText
-        
-        let ingredientHeight = heightForLabel(text: ingredientText, width: width)
-        let directionHeight = heightForLabel(text: dirctionsText, width: width)
-        
-        let ingredientTitleY = recipeImage.frame.height + 60
-        let ingredientY = ingredientTitleY + ingredientTitleLabel.frame.height + 20
-        
-        ingredientTextLabel.frame = CGRect(x: 10, y: ingredientY, width: width, height: ingredientHeight)
-        
-        let directionsTitleY = ingredientY + ingredientTextLabel.frame.height
-        directionsTitleLabel.frame = CGRect(x: 10, y: directionsTitleY, width: width, height: 24)
-        
-        let directionsY = directionsTitleY + directionsTitleLabel.frame.height + 20
-        directionsTextLabel.frame = CGRect(x: 10, y: directionsY, width: width, height: directionHeight)
         
     }
     
@@ -197,7 +218,7 @@ class RecipeViewController: UIViewController {
                 case .success(let ingredients):
                     for ingredient in ingredients.ingredients {
 
-                        self.updateIngredients(str: "\(ingredient.amount.us.value) \(ingredient.amount.us.unit) - \(ingredient.name)")
+                        self.updateIngredients(str: "\(self.formatAmount(ingredient.amount.us.value)) \(ingredient.amount.us.unit) - \(ingredient.name)")
                     }
                     self.updateView()
                     print(self.ingredients)
@@ -255,5 +276,13 @@ extension RecipeViewController {
     func updateDirections(str: String) {
         directions.append(str)
         print(directions)
+    }
+    
+    func formatAmount(_ value: Double) -> String {
+        if value == floor(value) {
+            return String(Int(value))
+        } else {
+            return "\(round(value * 100) / 100.0)"
+        }
     }
 }

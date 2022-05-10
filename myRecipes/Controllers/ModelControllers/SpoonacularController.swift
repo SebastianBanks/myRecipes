@@ -50,7 +50,7 @@ class SpoonacularController {
         var components = URLComponents(url: complexSearchURL, resolvingAgainstBaseURL: true)
         let apiQuery = URLQueryItem(name: apiKey, value: apiKeyValue)
         let searchQuery = URLQueryItem(name: queryKey, value: searchTerm)
-        let numberQuery = URLQueryItem(name: numberKey, value: "25")
+        let numberQuery = URLQueryItem(name: numberKey, value: "30")
         components?.queryItems = [searchQuery, numberQuery, apiQuery]
         
         if let diet = diet {

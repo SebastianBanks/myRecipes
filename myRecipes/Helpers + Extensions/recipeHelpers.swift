@@ -43,15 +43,8 @@ extension Array {
         for word in self {
             returnString += "\(word), "
         }
-        if returnString.last == " " {
-            returnString.removeLast()
-        }
         
-        if returnString.last == "," {
-            returnString.removeLast()
-        }
-        
-        return returnString
+        return String(returnString.dropLast(2))
     }
 }
 
@@ -78,3 +71,48 @@ extension RecipeViewController {
         return label.frame.height
     }
 }
+
+extension DiscoverTableViewController: UITextFieldDelegate {
+//    func initializeHideKeyboard() {
+//        
+//        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+//        view.addGestureRecognizer(tap)
+//    }
+//    
+//    @objc func dismissKeyboard() {
+//        view.endEditing(true)
+//    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if let nextField = self.view.viewWithTag(textField.tag + 1) as? UITextField {
+            nextField.becomeFirstResponder()
+        } else {
+            textField.resignFirstResponder()
+        }
+        return false
+    }
+    
+}
+
+extension NewRecipeViewController: UITextFieldDelegate {
+    func initializeHideKeyboard() {
+        
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tap)
+    }
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if let nextField = self.view.viewWithTag(textField.tag + 1) as? UITextField {
+            nextField.becomeFirstResponder()
+        } else {
+            textField.resignFirstResponder()
+        }
+        return false
+    }
+}
+
+

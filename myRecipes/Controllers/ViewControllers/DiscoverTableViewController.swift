@@ -6,9 +6,12 @@
 //
 
 import UIKit
+import CoreML
+import Vision
 
-class DiscoverTableViewController: UITableViewController {
+class DiscoverTableViewController: UITableViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
+    let imagePicker = UIImagePickerController()
     var recipes: [SpoonacularRecipe] = []
     
     @IBOutlet weak var searchRecipe: UITextField!
@@ -19,8 +22,13 @@ class DiscoverTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+//        initializeHideKeyboard()
         setupMenuButtons()
-        
+//        imagePicker.delegate = self
+//        imagePicker.sourceType = .camera
+//        imagePicker.allowsEditing = false
+        searchRecipe.delegate = self
+        searchRecipe.tag = 1
     }
     
     
@@ -42,6 +50,10 @@ class DiscoverTableViewController: UITableViewController {
                 }
             }
         }
+    }
+    
+    @IBAction func cameraButtonPressed(_ sender: Any) {
+        present(imagePicker, animated: true, completion: nil)
     }
     
     func setupMenuButtons() {
@@ -95,6 +107,60 @@ class DiscoverTableViewController: UITableViewController {
         
     }
     
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        
+        if let userPickedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
+            
+            
+            guard let ciImage = CIImage(image: userPickedImage) else {
+                fatalError("Could not convert to ciImage")
+            }
+            
+            detect(image: ciImage)
+        }
+        imagePicker.dismiss(animated: true, completion: nil)
+    }
+
+    func detect(image: CIImage) {
+        
+        //Just change MyImageClassifier() to switch between models
+        guard let model = try? VNCoreMLModel(for: foodIdentifier().model) else {
+            fatalError("Loading CoreML model failed")
+        }
+        
+        let request = VNCoreMLRequest(model: model) { (request, error) in
+            guard let results = request.results as? [VNClassificationObservation] else {
+                fatalError("Model failed to process image")
+            }
+            
+            if let firstResult = results.first {
+                let mlResult = firstResult.identifier
+                self.searchRecipe.text = mlResult
+                SpoonacularController.fetchRecipeWith(searchTerm: mlResult, diet: nil, intolerences: nil, maxReadyTime: nil) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success(let recipes):
+                            self.recipes = recipes
+                            self.tableView.reloadData()
+                        case .failure(let error):
+                            print(error)
+                        }
+                    }
+                }
+            }
+            print(results)
+        }
+        
+        let handler = VNImageRequestHandler(ciImage: image)
+        
+        do {
+            try handler.perform([request])
+        } catch {
+            print(error)
+        }
+        
+    }
 
     // MARK: - Table view data source
 

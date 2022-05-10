@@ -16,12 +16,21 @@ class NewRecipeViewController: UIViewController {
     @IBOutlet weak var createRecipeButton: UIButton!
     
     
+    
+    
     var recipeImage: UIImage?
     var recipe: Recipe?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        initializeHideKeyboard()
         setupViews()
+        recipeNameTextField.delegate = self
+        ingredientsTextField.delegate = self
+        directionsTextField.delegate = self
+        recipeNameTextField.tag = 1
+        ingredientsTextField.tag = 2
+        directionsTextField.tag = 3
     }
     
     @IBAction func createRecipeButtonTapped(_ sender: Any) {

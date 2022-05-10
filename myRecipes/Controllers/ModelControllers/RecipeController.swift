@@ -101,5 +101,6 @@ class RecipeController {
             print("\(recordIDs) were removed successfully")
             completion(true)
         }
+        privateDB.add(operation)
     }
 }
